@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (C) Canonical Ltd.
+# SPDX-License-Identifier: GPL-3.0-only
 """Simple HTTP API server using Flask."""
 
 import argparse

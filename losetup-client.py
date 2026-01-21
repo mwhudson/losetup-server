@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (C) Canonical Ltd.
+# SPDX-License-Identifier: GPL-3.0-only
 """Client for losetup-server, intended as a drop-in replacement for losetup."""
 
 import json
