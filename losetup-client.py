@@ -2,6 +2,7 @@
 """Client for losetup-server, intended as a drop-in replacement for losetup."""
 
 import json
+import os
 import subprocess
 import sys
 import urllib.request
@@ -27,12 +28,26 @@ def get_default_gateway() -> str:
     raise RuntimeError("No default gateway found")
 
 
+def convert_paths(args: list[str]) -> list[str]:
+    """Convert file paths to be relative to container root."""
+    result = []
+    for arg in args:
+        if arg.startswith("-") or arg.startswith("/dev/"):
+            result.append(arg)
+        else:
+            # Convert to absolute path, then strip leading slash
+            abs_path = os.path.abspath(arg)
+            result.append(abs_path[1:])
+    return result
+
+
 def main():
     gateway = get_default_gateway()
     server_url = f"http://{gateway}:{DEFAULT_PORT}"
 
     url = f"{server_url}/losetup"
-    data = json.dumps({"args": sys.argv[1:]}).encode()
+    args = convert_paths(sys.argv[1:])
+    data = json.dumps({"args": args}).encode()
 
     req = urllib.request.Request(
         url,

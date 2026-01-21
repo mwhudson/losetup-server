@@ -6,6 +6,7 @@ import glob
 import json
 import os
 import subprocess
+import sys
 
 from flask import Flask, jsonify, request
 
@@ -67,6 +68,8 @@ def losetup():
     if not isinstance(args, list) or not all(isinstance(a, str) for a in args):
         return jsonify({"error": "args must be a list of strings"}), 400
 
+    print(f"Received args: {args}", file=sys.stderr)
+
     # Check if --show is in the args
     has_show = "--show" in args
 
@@ -79,8 +82,11 @@ def losetup():
             args[i] = os.path.join(container_rootfs, arg)
             break
 
+    cmd = ["losetup"] + args
+    print(f"Running: {cmd}", file=sys.stderr)
+
     result = subprocess.run(
-        ["losetup"] + args,
+        cmd,
         capture_output=True,
         text=True,
     )
@@ -102,6 +108,7 @@ def losetup():
 
             for dev_path in devices_to_add:
                 device_name = os.path.basename(dev_path)
+                print(f"Adding device {dev_path} to container {container_name}", file=sys.stderr)
                 subprocess.run(
                     [
                         "lxc", "config", "device", "add",
