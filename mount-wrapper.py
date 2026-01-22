@@ -103,6 +103,7 @@ def setup_loop_device(source: str, options: dict) -> str | None:
 
     losetup_args.append(source)
 
+    print(f"mount-wrapper: running {losetup_args}")
     result = subprocess.run(losetup_args, capture_output=True, text=True)
     if result.returncode != 0:
         print(f"losetup failed: {result.stderr}", file=sys.stderr)
@@ -113,18 +114,24 @@ def setup_loop_device(source: str, options: dict) -> str | None:
 
 def main():
     args = sys.argv[1:]
+    print(f"mount-wrapper: called with args: {args}")
 
     # Parse the arguments
     options, flags, source, target = parse_mount_args(args)
+    print(f"mount-wrapper: parsed options={options}, flags={flags}, source={source}, target={target}")
 
     # Check if loop option is specified and source is a regular file
     use_loop = "loop" in options and source and os.path.isfile(source)
 
     if use_loop:
+        print(f"mount-wrapper: loop mount requested for {source}")
+
         # Set up loop device
         loop_device = setup_loop_device(source, options)
         if loop_device is None:
             sys.exit(1)
+
+        print(f"mount-wrapper: losetup returned device {loop_device}")
 
         # Remove loop-specific options that mount doesn't need
         for opt in ("loop", "offset", "sizelimit", "partscan"):
@@ -141,9 +148,11 @@ def main():
         if target:
             mount_args.append(target)
 
+        print(f"mount-wrapper: executing {mount_args}")
         os.execv(REAL_MOUNT, mount_args)
     else:
         # Pass through to real mount
+        print(f"mount-wrapper: passing through to {REAL_MOUNT}")
         os.execv(REAL_MOUNT, [REAL_MOUNT] + args)
 
 
